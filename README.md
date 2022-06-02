@@ -2,7 +2,9 @@
 
 ## About
 
-Use DBSCAN algorithm to segment point cloud cluster. Use Kd-tree for radius search. Also as the final project for Data Minig Course(AU7008 SJTU). Under continuous development.
+Use DBSCAN algorithm to segment point cloud cluster. Use Kd-tree for radius search. 
+Also as the final project for Data Minig Course(AU7008 SJTU). 
+Under continuous development.
 
 ## Dependencies
 
@@ -15,16 +17,15 @@ The code was tested under:
 ## Usage
 
 set your PCL dir in CMakeLists.txt(Line:5)
-and then:
-'''
+then
+``` bash
 mkdir build
 cd build
 cmake ..
 make
-'''
-'./DBSCAN_point_cloud_node'
-or
-'./DBSCAN_point_cloud_node ${Data_dir}'
+./DBSCAN_point_cloud_node  # ./DBSCAN_point_cloud_node ${Data_dir} if you want to use your own data.
+```
+
 
 ## Result
 
@@ -33,7 +34,7 @@ change .bin to .pcd and each obstacle has been extracted in advance.
 
 ### teminal output
 
-'''
+```
 -------------- info --------------
 Min Points:     20
 Epsilon:        0.5
@@ -45,7 +46,7 @@ point size(after voxelized):    2897
 cluster num:    6
 noise point num:        0
 Extract by Time:        72.0748 ms.
-'''
+```
 
 ### visualization
 
