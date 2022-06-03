@@ -1,7 +1,7 @@
 /*
  * @Author: Liuyaqi99 liuyaqi1212h@163.com
  * @Date: 2022-06-01 21:13:47
- * @LastEditTime: 2022-06-02 21:36:54
+ * @LastEditTime: 2022-06-03 20:03:51
  * @FilePath: /dbscan_pcl/src/dbscanPcl.h
  * @Description: DBSCAN algorithm for point cloud cluster
  */
@@ -29,6 +29,7 @@ public:
   void extract(std::vector<pcl::PointIndices> &cluster_indices,
                pcl::PointIndices &noise_indices) {
     int cluster_count = 0;
+    std::vector<std::vector<int>> nnList;
     std::vector<int> pointIdxSearch;
     std::vector<float> pointSquareDistance;
     std::vector<int> coreListsIdx;
@@ -36,11 +37,25 @@ public:
     std::vector<int> types(input_cloud_->points.size(), UN_VISITED);
 
     // initial core list
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     for (size_t i = 0; i < input_cloud_->size(); i++) {
-      if (radiusSearch(i, eps_, pointIdxSearch, pointSquareDistance) >= minPts_)
+      const PointT &pt = input_cloud_->points[i];
+      const double dis_xy = sqrt(pt.x * pt.x + pt.y * pt.y);
+      const double local_eps = std::max(
+          dis_xy * 0.16 * M_PI / 180 * (1 / tan(4 * M_PI / 180)), eps_);
+      if (radiusSearch(i, local_eps, pointIdxSearch, pointSquareDistance) >=
+          minPts_)
         coreListsIdx.push_back(i);
+      nnList.push_back(pointIdxSearch);
     }
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::ratio<1, 1000>> time_span =
+        std::chrono::duration_cast<
+            std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+    // std::cout << "1 Extract by Time:\t" << time_span.count() << " ms."
+    // << std::endl;
 
+    t1 = std::chrono::steady_clock::now();
     // for each core point, find its neighbours
     while (!coreListsIdx.empty()) {
       const int &core = coreListsIdx[0];
@@ -52,10 +67,9 @@ public:
       while (!QIdx.empty()) {
         int q = QIdx[0];
         QIdx.erase(QIdx.begin());
-        if (radiusSearch(q, eps_, pointIdxSearch, pointSquareDistance) >=
-            minPts_) {
-          for (size_t i = 0; i < pointIdxSearch.size(); i++) {
-            const int &idx = pointIdxSearch[i];
+        if (nnList[q].size() >= minPts_) {
+          for (size_t i = 0; i < nnList[q].size(); i++) {
+            const int &idx = nnList[q][i];
             if (types[idx] == UN_VISITED) {
               QIdx.push_back(idx);
               types[idx] = VISITED;
@@ -75,11 +89,22 @@ public:
                           std::back_inserter(result));
       std::swap(coreListsIdx, result);
     }
+    t2 = std::chrono::steady_clock::now();
+    time_span = std::chrono::duration_cast<
+        std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+    // std::cout << "2 Extract by Time:\t" << time_span.count() << " ms."
+    // << std::endl;
 
+    t1 = std::chrono::steady_clock::now();
     for (size_t i = 0; i < is_noise.size(); i++) {
       if (is_noise[i])
         noise_indices.indices.push_back(i);
     }
+    t2 = std::chrono::steady_clock::now();
+    time_span = std::chrono::duration_cast<
+        std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+    // std::cout << "3 Extract by Time:\t" << time_span.count() << " ms."
+    // << std::endl;
   }
 
   void setClusterTolerance(double tolerance) { eps_ = tolerance; }

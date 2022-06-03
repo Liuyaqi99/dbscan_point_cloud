@@ -1,7 +1,7 @@
 /*
  * @Author: Liuyaqi99 liuyaqi1212h@163.com
  * @Date: 2022-06-01 21:27:17
- * @LastEditTime: 2022-06-02 22:05:13
+ * @LastEditTime: 2022-06-02 23:27:10
  * @FilePath: /dbscan_pcl/src/main.cc
  * @Description: main
  */
@@ -15,7 +15,7 @@
 #include "dbscanPcl.h"
 #include "showPcl.h"
 
-#define USE_VOXEL
+// #define USE_VOXEL
 // #define SHOW_RAW_POINT_CLOUD
 
 int main(int argc, char **argv) {
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     return (-1);
   }
   int minpts = 20;
-  double epis = 0.5;
+  double epis = 0.8;
   double voxel_leaf = 0.1;
   std::cout << "-------------- info --------------" << std::endl;
   std::cout << "Min Points:\t" << minpts << "\nEpsilon:\t" << epis
@@ -46,7 +46,6 @@ int main(int argc, char **argv) {
 #endif
 
   // 聚类 segmetation
-  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   std::shared_ptr<DBSCANPointCloud<pcl::PointXYZ>> cluster =
       std::make_shared<DBSCANPointCloud<pcl::PointXYZ>>();
   std::vector<pcl::PointIndices> clusterIdxList;
@@ -62,7 +61,7 @@ int main(int argc, char **argv) {
       new pcl::PointCloud<pcl::PointXYZ>);
   pcl::VoxelGrid<pcl::PointXYZ> sor;
   sor.setInputCloud(cloudSrc);
-  sor.setLeafSize(voxel_leaf, voxel_leaf, voxel_leaf);
+  sor.setLeafSize(voxel_leaf, voxel_leaf, 1.0);
   sor.filter(*cloudVoxeled);
   std::cout << "Use Voxel, voxel leaf size:\t" << voxel_leaf
             << "\npoint size(after voxelized):\t" << cloudVoxeled->size()
@@ -72,6 +71,7 @@ int main(int argc, char **argv) {
   kdtree->setInputCloud(cloud);
   cluster->setInputCloud(cloud);
   cluster->setSearchMethod(kdtree);
+  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   cluster->extract(clusterIdxList, noiseIdx);
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::ratio<1, 1000>> time_span =
