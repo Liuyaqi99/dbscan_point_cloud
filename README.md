@@ -4,7 +4,6 @@
 
 Use DBSCAN algorithm to segment point cloud cluster. Use Kd-tree for radius search. 
 Also as the final project for Data Minig Course(AU7008 SJTU). 
-Under continuous development.
 
 ## Dependencies
 
